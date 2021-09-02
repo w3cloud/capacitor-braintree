@@ -1,5 +1,5 @@
 {
-  "name": "capacitor-braintree-dropin",
+  "name": "capacitor-braintree",
   "version": "0.1.0",
   "description": "A Capacitor plugin for the Braintree mobile payment processing SDK (forked from https://github.com/sumbria/capacitor-braintree)",
   "main": "dist/esm/index.js",

@@ -42,7 +42,7 @@ public class BraintreePlugin: CAPPlugin {
          * DropIn UI Request
          */
         let request = BTDropInRequest()
-        //request.amount = amount // <---------------@@@ this cause error in IOS
+        //request.amount = amount
         
         /**
          * Disabble Payment Methods
@@ -78,7 +78,7 @@ public class BraintreePlugin: CAPPlugin {
             controller.dismiss(animated: true, completion: nil)
         }
         DispatchQueue.main.async {
-            self.bridge.viewController.present(dropIn!, animated: true, completion: nil)
+            self.bridge?.viewController?.present(dropIn!, animated: true, completion: nil)
         }
     }
     
@@ -114,7 +114,7 @@ public class BraintreePlugin: CAPPlugin {
             cardNonce = paymentMethodNonce as! BTCardNonce
             response["card"] = [
                 "lastTwo": cardNonce.lastTwo!,
-                //"network": cardNonce.cardNetwork // <---------------@@@ this cause error in IOS
+                "network": cardNonce.cardNetwork
             ]
         }
         
