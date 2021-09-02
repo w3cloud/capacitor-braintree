@@ -1,3 +1,8 @@
+#Note
+Original Project Home: https://github.com/albertixcom/capacitor-braintree-dropin.
+
+WORK IN PROGRESS. May not work in your poject. PLease get from the original project.
+
 # capacitor-braintree
 A Capacitor plugin for the Braintree mobile payment processing SDK (forked from https://github.com/sumbria/capacitor-braintree)
 
