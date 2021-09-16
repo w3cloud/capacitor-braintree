@@ -5,8 +5,9 @@ import BraintreeDropIn
 
 @objc(BraintreePlugin)
 public class BraintreePlugin: CAPPlugin {
-    var token: String!
     
+    var token: String!
+
     /**
      * Set Braintree API token
      * Set Braintree Switch URL
@@ -33,36 +34,70 @@ public class BraintreePlugin: CAPPlugin {
      * Show DropIn UI
      */
     @objc func showDropIn(_ call: CAPPluginCall) {
-        guard let amount = call.getString("amount") else {
-            call.reject("An amount is required.")
-            return;
-        }
+//        guard let amount = call.getString("amount") else {
+//            call.reject("An amount is required.")
+//            return;
+//        }
         
         /**
          * DropIn UI Request
          */
         let request = BTDropInRequest()
-        //request.amount = amount
+        if call.hasOption("allowVaultCardOverride") {
+            request.allowVaultCardOverride = call.getBool("allowVaultCardOverride") ?? false
+        }
+        if call.hasOption("applePayDisabled") {
+            request.applePayDisabled = call.getBool("applePayDisabled") ?? false
+        }
+        if call.hasOption("cardDisabled") {
+            request.cardDisabled = call.getBool("cardDisabled") ?? false
+        }
+        
+        if call.hasOption("cardholderNameSetting") {
+              if (call.getBool("cardholderNameSetting") ??  false){
+                request.cardholderNameSetting = .required
+            }
+        }
+        if call.hasOption("paypalDisabled") {
+            request.paypalDisabled = call.getBool("paypalDisabled") ?? false
+        }
+        if call.hasOption("shouldMaskSecurityCode") {
+            request.shouldMaskSecurityCode = call.getBool("shouldMaskSecurityCode") ?? false
+        }
+        if call.hasOption("vaultCard") {
+            request.vaultCard=call.getBool("vaultCard") ?? false
+        }
+        if call.hasOption("vaultVenmo") {
+            request.vaultVenmo = call.getBool("vaultVenmo") ?? false
+        }
+        if call.hasOption("venmoDisabled") {
+            request.venmoDisabled=call.getBool("venmoDisabled") ?? false
+            
+        }
+//        if call.hasOption("") {
+//            request.=call.getBool("") ?? false
+//        }
+     
+//        request.shouldMaskSecurityCode
+//        request.vaultCard
+//        request.vaultVenmo
+//        request.venmoDisabled
+//        request.threeDSecureRequest
+//        request.threeDSecureVerification
+//        let threeDSeciureRequest:BTThreeDSecureRequest=BTThreeDSecureRequest()
+//        threeDSeciureRequest.challengeRequested
+//        threeDSeciureRequest.amount
+//        threeDSeciureRequest.email
+//        threeDSeciureRequest.exemptionRequested
+//        threeDSeciureRequest.mobilePhoneNumber
+//        threeDSeciureRequest.nonce
+//        threeDSeciureRequest.
+//        request.threeDSecureRequest=threeDSeciureRequest
+        
         
         /**
          * Disabble Payment Methods
          */
-        if call.hasOption("disabled") {
-            let disabled = call.getArray("disabled", String.self)
-            if disabled!.contains("paypal") {
-                request.paypalDisabled = true;
-            }
-            if disabled!.contains("venmo") {
-                request.venmoDisabled = true;
-            }
-            if disabled!.contains("applePay") {
-                request.applePayDisabled = true;
-            }
-            if disabled!.contains("card") {
-                request.cardDisabled = true;
-            }
-        }
-        
         /**
          * Initialize DropIn UI
          */
@@ -72,13 +107,54 @@ public class BraintreePlugin: CAPPlugin {
                 call.reject("Something went wrong.")
             } else if (result?.isCancelled == true) {
                 call.resolve(["cancelled": true])
-            } else if let result = result {
-                call.resolve(self.getPaymentMethodNonce(paymentMethodNonce: result.paymentMethod!))
+            } else if let result=result {
+                print("result paymentDescription: ", result.paymentDescription)
+                print("nonce: ", result.paymentMethod!.nonce)
+                var response: [String: Any] = ["cancelled": false]
+                response["nonce"]=result.paymentMethod!.nonce
+                response["type"]=result.paymentMethod!.type
+                call.resolve(response)
             }
+            
+            
             controller.dismiss(animated: true, completion: nil)
+            
         }
+        let cardForm=BTCardFormViewController(apiClient: dropIn!.apiClient, request: dropIn!.dropInRequest)
+        cardForm.supportedCardTypes=[BTUIKPaymentOptionType.visa.rawValue as NSNumber]
+     
+        
+        
+        
+        
+//
+//
+//            NSString* token = [jsonData valueForKey:@"response"];
+//                    self.req=[[BTDropInRequest alloc] init];
+//
+//                    self.req.applePayDisabled = YES ;
+//
+//                    self.cardForm = [[BTDropInController alloc] initWithAuthorization:token request:self.req handler:^(BTDropInController * _Nonnull controller, BTDropInResult * _Nullable result, NSError * _Nullable error) {
+//
+//
+//
+//                    }];
+//
+//                    BTCardFormViewController* vd = [[BTCardFormViewController alloc] initWithAPIClient:self.cardForm.apiClient request:self.cardForm.dropInRequest];
+//                    vd.supportedCardTypes = [NSArray arrayWithObject:@(BTUIKPaymentOptionTypeVisa)];
+//                    vd.delegate = self;
+//
+//                    UINavigationController* navController = [[UINavigationController alloc] initWithRootViewController:vd];
+//                    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+//                        navController.modalPresentationStyle = UIModalPresentationPageSheet;
+//                    }
+//
+//                    [self presentViewController:navController animated:YES completion:nil];
+//
+        
         DispatchQueue.main.async {
-            self.bridge?.viewController?.present(dropIn!, animated: true, completion: nil)
+            //dropIn?.showCardForm({})
+            self.bridge?.viewController?.present(cardForm, animated: true, completion: nil)
         }
     }
     
@@ -88,6 +164,8 @@ public class BraintreePlugin: CAPPlugin {
         var venmoAccountNonce: BTVenmoAccountNonce
         
         var response: [String: Any] = ["cancelled": false]
+      
+
         response["nonce"] = paymentMethodNonce.nonce
         response["type"] = paymentMethodNonce.type
         response["localizedDescription"] = paymentMethodNonce.localizedDescription
@@ -113,7 +191,7 @@ public class BraintreePlugin: CAPPlugin {
         if(paymentMethodNonce is BTCardNonce){
             cardNonce = paymentMethodNonce as! BTCardNonce
             response["card"] = [
-                "lastTwo": cardNonce.lastTwo!,
+                "lastTwo": cardNonce.lastFour,
                 "network": cardNonce.cardNetwork
             ]
         }

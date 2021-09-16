@@ -9,6 +9,14 @@ export interface DropInToken {
 export interface DropInOptions {
     amount: string;
     disabled?: string[];
+    allowVaultCardOverride?: boolean;
+    applePayDisabled?: boolean;
+    cardDisabled?: boolean;
+    cardholderNameSetting?: boolean;
+    paypalDisabled?: boolean;
+    vaultCard?: boolean;
+    vaultVenmo?: boolean;
+    venmoDisabled?: boolean;
 }
 export interface DropInResult {
     cancelled: boolean;
